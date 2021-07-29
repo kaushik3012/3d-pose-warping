@@ -29,10 +29,6 @@ def init():
     params['residual_channels'] = 64  # number of 3D channels
     params['depth'] = 32  # depth of the volume
 
-    # ablation models
-    params['2d_3d_warp'] = False
-    params['2d_3d_pose'] = False
-
     # adam parameters
     params['alpha'] = 2e-4
     params['beta1'] = 0.5
@@ -48,57 +44,10 @@ def init():
     params['steps_per_image_summary'] = 200
 
     # validation configuration
-    params['with_valid'] = False  # if True, training is performed on train and valid and tb outputs are on test split
+    params['with_valid'] = True  # if True, training is performed on train and valid and tb outputs are on test split
     params['valid_count'] = 3  # number of samples validation is based on
 
-    params['name'] = 'unnamed'  # name will be appended to both the checkpoint directory and the tebsorboard directory
-    params['JOB_ID'] = -1
-
-
-def load_id(job_id):
-    if job_id == 1:
-        params['dataset'] = 'fashio3d'
-        params['with_valid'] = True
-        params['name'] = 'fash-3d_w-3d_p-fash'
-    elif job_id == 2:
-        params['dataset'] = 'fashion3d'
-        params['2d_3d_pose'] = True
-        params['with_valid'] = True
-        params['name'] = 'fash-3d_w-2d_p-fash'
-    elif job_id == 3:
-        params['dataset'] = 'fashion3d'
-        params['with_valid'] = True
-        params['name'] = 'fash-2d_w-3d_p-fash'
-    elif job_id == 4:
-        params['dataset'] = 'fashion3d'
-        params['2d_3d_pose'] = True
-        params['2d_3d_warp'] = True
-        params['with_valid'] = True
-        params['name'] = 'fash-2d_w-2d_p=fash'
-
-    elif job_id == 5:
-        params['dataset'] = 'fashion3d'
-        params['with_valid'] = True
-        params['name'] = 'fash-3d_w-3d_p-fash'
-    elif job_id == 6:
-        params['dataset'] = 'fashion3d'
-        params['2d_3d_pose'] = True
-        params['with_valid'] = True
-        params['name'] = 'fash-3d_w-2d_p-fash'
-    elif job_id == 7:
-        params['dataset'] = 'fashion3d'
-        params['2d_3d_warp'] = True
-        params['with_valid'] = True
-        params['name'] = 'fash-2d_w-3d_p-fash'
-    elif job_id == 8:
-        params['dataset'] = 'fashion3d'
-        params['2d_3d_pose'] = True
-        params['2d_3d_warp'] = True
-        params['with_valid'] = True
-        params['name'] = 'fash-2d_w-2d_p-fash'
-
-    else:
-        raise ValueError()
+    params['name'] = 'fash-3d_w-3d_p'  # name will be appended to both the checkpoint directory and the tebsorboard directory
 
 
 init()
@@ -124,9 +73,6 @@ for name, val in zip(par_names, par_vals):
         params[name] = val == 'True'
     else:
         params[name] = type(params[name])(val)
-
-if params['JOB_ID'] != -1:
-    load_id(params['JOB_ID'])
 
 params['tb_dir'] += params['name'] + '/'
 params['check_dir'] += params['name'] + '/'
