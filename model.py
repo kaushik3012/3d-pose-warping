@@ -126,9 +126,6 @@ def tf_pose_map_3d(poses, shape):
             pose_map = tf.exp(-tf.reduce_sum(pose_map ** 2, axis=0) / (2 * sigma ** 2))
             pose_maps.append(pose_map)
         pose_map = tf.stack(pose_maps, axis=-1)
-        if params['2d_3d_pose']:
-            pose_map = tf.reduce_max(pose_map, axis=2, keepdims=True)
-            pose_map = tf.tile(pose_map, [1, 1, params['depth'], 1])
         pose_mapss.append(pose_map)
     return tf.stack(pose_mapss, axis=0)
 
@@ -169,10 +166,7 @@ def resnet_decoder(x):
 
 def background_inpainter(img_batch, masks_batch):
     # adapted from https://github.com/MathiasGruber/PConv-Keras
-    if params['2d_3d_warp']:
-        bg_mask = masks_batch
-    else:
-        bg_mask = tf.reduce_max(masks_batch, axis=3)
+    bg_mask = tf.reduce_max(masks_batch, axis=3)
     bg_mask = bg_mask[:, :-1, :-1]
     bg_mask = tf.image.resize_images(bg_mask, (params['image_size'], params['image_size']),
                                      method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
