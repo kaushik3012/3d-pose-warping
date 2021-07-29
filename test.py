@@ -29,55 +29,50 @@ if __name__ == '__main__':
     # TESTING GRAPH
     print('build testing graph')
 
-    valid_count = params['valid_count']
+    test_count = params['test_count']
 
-    valid_dataset = get_dataset(params['dataset'], deterministic=False, with_to_masks=True)
-    valid_data = []
-    if params['with_valid']:  
-        for valid_sample in valid_dataset.next_test_sample():
-            valid_data.append(valid_sample)
-            if len(valid_data) == valid_count:
-                break
-    else:
-        for valid_sample in valid_dataset.next_valid_sample():
-            valid_data.append(valid_sample)
-            if len(valid_data) == valid_count:
-                break
+    test_dataset = get_dataset(params['dataset'], deterministic=False, with_to_masks=True)
+    test_data = []
 
-    def valid_gen():
+    for test_sample in test_dataset.next_test_sample():
+        test_data.append(test_sample)
+        if len(test_data) == test_count:
+            break
+
+    def test_gen():
         while True:
-            for sample in valid_data:
+            for sample in test_data:
                 yield sample
 
 
-    valid_dataset = parallel_map_as_tf_dataset(None, valid_gen(), n_workers=10, deterministic=False)
-    valid_dataset = valid_dataset.batch(1, drop_remainder=True)
-    valid_iterator = valid_dataset.make_one_shot_iterator()
-    (valid_img_from, valid_img_to, valid_mask_from, valid_mask_to, valid_transform_params, valid_3d_input_pose,
-      valid_3d_target_pose) = valid_iterator.get_next()
+    test_dataset = parallel_map_as_tf_dataset(None, test_gen(), n_workers=5, deterministic=False)
+    test_dataset = test_dataset.batch(1, drop_remainder=True)
+    test_iterator = test_dataset.make_one_shot_iterator()
+    (test_img_from, test_img_to, test_mask_from, test_mask_to, test_transform_params, test_3d_input_pose,
+      test_3d_target_pose) = test_iterator.get_next()
 
     print('- GAN')
     with tf.variable_scope('GAN', reuse=False):
         pose_gan = tfgan.gan_model(
             generator,
             discriminator,
-            real_data= valid_img_to,
-            generator_inputs=[valid_img_from, valid_mask_from, valid_transform_params, valid_3d_input_pose,
-                              valid_3d_target_pose],
+            real_data= test_img_to,
+            generator_inputs=[test_img_from, test_mask_from, test_transform_params, test_3d_input_pose,
+                              test_3d_target_pose],
             check_shapes=False
         )
 
     # 2D mask for target pose to compute foreground SSIM
-    valid_fg_mask = tf.reduce_max(valid_mask_to, axis=3)
-    valid_fg_mask = valid_fg_mask[:, :-1, :-1]
-    valid_fg_mask = tf.image.resize_images(valid_fg_mask, (params['image_size'], params['image_size']),
+    test_fg_mask = tf.reduce_max(test_mask_to, axis=3)
+    test_fg_mask = test_fg_mask[:, :-1, :-1]
+    test_fg_mask = tf.image.resize_images(test_fg_mask, (params['image_size'], params['image_size']),
                                            method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
-    valid_fg_mask = tf.reduce_max(valid_fg_mask, axis=3)
+    test_fg_mask = tf.reduce_max(test_fg_mask, axis=3)
 
     with tf.variable_scope('GAN/Generator', reuse=True):
-        valid_model = pose_gan.generator_fn([valid_img_from, valid_mask_from, valid_transform_params, valid_3d_input_pose, valid_3d_target_pose])
+        test_model = pose_gan.generator_fn([test_img_from, test_mask_from, test_transform_params, test_3d_input_pose, test_3d_target_pose])
 
-    valid_pose_loss = get_pose_loss(valid_img_to, valid_model[0])
+    test_pose_loss = get_pose_loss(test_img_to, test_model[0])
 
     init_pose_model(sess, 'pose3d_minimal/checkpoint/model.ckpt-160684')
 
@@ -105,12 +100,12 @@ if __name__ == '__main__':
         v_bg_mask = []
         v_fg = []
         v_fg_m = []
-        valid_generated = tf.clip_by_value(valid_model[0], -1, 1)
+        test_generated = tf.clip_by_value(test_model[0], -1, 1)
         print('- generating images')
-        for _ in range(valid_count):
+        for _ in range(test_count):
             inp, tar, gen, pl, bg, bg_mask, fg, fg_m = sess.run(
-                [valid_img_from, valid_img_to, valid_generated, valid_pose_loss, valid_model[1]['background'],
-                  valid_model[1]['foreground_mask'], valid_model[1]['foreground'], valid_fg_mask])
+                [test_img_from, test_img_to, test_generated, test_pose_loss, test_model[1]['background'],
+                  test_model[1]['foreground_mask'], test_model[1]['foreground'], test_fg_mask])
             v_inp.append(inp[0, :256, :256] / 2 + .5)
             v_tar.append(tar[0, :256, :256] / 2 + .5)
             v_gen.append(gen[0, :256, :256] / 2 + .5)
@@ -120,7 +115,7 @@ if __name__ == '__main__':
             v_fg.append(fg[0, :256, :256] / 2 + .5)
             v_fg_m.append(fg_m[0, ..., np.newaxis])
 
-        prefix = 'test' if params['with_valid'] else 'val'
+        prefix = 'test'
         print('- computing SSIM scores')
         ssim_score, ssim_fg, ssim_bg = ssim(v_tar, v_gen, masks=v_fg_m)
         summary = tf.Summary(value=[tf.Summary.Value(tag=f'{prefix}_metrics/ssim', simple_value=ssim_score)])
@@ -139,12 +134,12 @@ if __name__ == '__main__':
             os.makedirs('output')
 
         print('- creating images for tensorboard')
-        v_inp = np.concatenate(v_inp[:valid_count], axis=0)
-        v_tar = np.concatenate(v_tar[:valid_count], axis=0)
-        v_gen = np.concatenate(v_gen[:valid_count], axis=0)
-        v_bg = np.concatenate(v_bg[:valid_count], axis=0)
-        v_bg_mask = np.concatenate(v_bg_mask[:valid_count], axis=0)
-        v_fg = np.concatenate(v_fg[:valid_count], axis=0)
+        v_inp = np.concatenate(v_inp[:test_count], axis=0)
+        v_tar = np.concatenate(v_tar[:test_count], axis=0)
+        v_gen = np.concatenate(v_gen[:test_count], axis=0)
+        v_bg = np.concatenate(v_bg[:test_count], axis=0)
+        v_bg_mask = np.concatenate(v_bg_mask[:test_count], axis=0)
+        v_fg = np.concatenate(v_fg[:test_count], axis=0)
         res = np.concatenate([v_inp, v_tar, v_gen, v_bg, v_bg_mask, v_fg], axis=1)
         plt.imsave('output/res_with_mask.png', res, format='png')
         s = BytesIO()
