@@ -10,6 +10,7 @@ import time
 from parameters import params
 import numpy as np
 import tensorflow_gan as tfgan
+import os
 
 backend = tf.keras.backend
 
@@ -30,7 +31,7 @@ if __name__ == '__main__':
 
     valid_count = params['valid_count']
 
-    valid_dataset = get_dataset(params['dataset'], deterministic=True, with_to_masks=True)
+    valid_dataset = get_dataset(params['dataset'], deterministic=False, with_to_masks=True)
     valid_data = []
     if params['with_valid']:  
         for valid_sample in valid_dataset.next_test_sample():
@@ -49,7 +50,7 @@ if __name__ == '__main__':
                 yield sample
 
 
-    valid_dataset = parallel_map_as_tf_dataset(None, valid_gen(), n_workers=1, deterministic=True)
+    valid_dataset = parallel_map_as_tf_dataset(None, valid_gen(), n_workers=10, deterministic=False)
     valid_dataset = valid_dataset.batch(1, drop_remainder=True)
     valid_iterator = valid_dataset.make_one_shot_iterator()
     (valid_img_from, valid_img_to, valid_mask_from, valid_mask_to, valid_transform_params, valid_3d_input_pose,
@@ -66,7 +67,7 @@ if __name__ == '__main__':
             check_shapes=False
         )
 
-        # 2D mask for target pose to compute foreground SSIM
+    # 2D mask for target pose to compute foreground SSIM
     valid_fg_mask = tf.reduce_max(valid_mask_to, axis=3)
     valid_fg_mask = valid_fg_mask[:, :-1, :-1]
     valid_fg_mask = tf.image.resize_images(valid_fg_mask, (params['image_size'], params['image_size']),
@@ -79,6 +80,9 @@ if __name__ == '__main__':
     valid_pose_loss = get_pose_loss(valid_img_to, valid_model[0])
 
     init_pose_model(sess, 'pose3d_minimal/checkpoint/model.ckpt-160684')
+
+    if not os.path.exists('tensorboard_events'):
+        os.makedirs('tensorboard_events')
 
     start = time.time()
     checkpoint = tf.train.latest_checkpoint(params['check_dir'])
@@ -130,6 +134,9 @@ if __name__ == '__main__':
         pl = np.mean(v_pl)
         summary = tf.Summary(value=[tf.Summary.Value(tag=f'{prefix}_metrics/pose_loss', simple_value=pl)])
         summary_writer.add_summary(summary, 0)
+        
+        if not os.path.exists('output'):
+            os.makedirs('output')
 
         print('- creating images for tensorboard')
         v_inp = np.concatenate(v_inp[:valid_count], axis=0)
@@ -150,7 +157,7 @@ if __name__ == '__main__':
 
         res2 = np.concatenate([v_inp, v_tar, v_gen], axis=1)
         plt.imsave('output/res.png', res2, format='png')
-
+        
     else:
         print("No Model Found!!")
 
