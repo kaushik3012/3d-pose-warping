@@ -125,9 +125,8 @@ def create_part_masks(pose, joint_order):
 
     masks = np.zeros((size, size, params['depth'], 10), dtype=np.float32)
     draw_mask(masks[..., 0], [kp[joint] for joint in ['rhip', 'lhip', 'lsho', 'rsho']], thickness=0.3 * st)
-    if params['dataset'] == 'merged':
-        draw_mask(masks[..., 1], [kp[joint] for joint in ['htop', 'head', 'neck']], thickness=0.5 * st)
-    elif params['dataset'] in ['iPER', 'fashion3d']:
+
+    if params['dataset'] in ['fashion3d']:
         center = 0.5 * kp['lear'] + 0.5 * kp['rear']  # head mask is capsule through ear's center
         to_neck = 0.7 * center + 0.3 * kp['neck']  # head mask is stretched in neck-direction
         back_neck = center - (to_neck - center)
@@ -148,8 +147,6 @@ def create_part_masks(pose, joint_order):
     draw_mask(masks[..., 8], [kp[joint] for joint in ['rhip', 'rkne']], thickness=0.2 * st)
     draw_mask(masks[..., 7], [kp[joint] for joint in ['lkne', 'lank']], thickness=0.2 * st, end=0.4 * st)
     draw_mask(masks[..., 9], [kp[joint] for joint in ['rkne', 'rank']], thickness=0.2 * st, end=0.4 * st)
-    if params['2d_3d_warp']:
-        masks = np.max(masks, axis=2)
     return masks
 
 
