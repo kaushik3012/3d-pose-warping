@@ -191,10 +191,6 @@ if __name__ == '__main__':
         except InvalidArgumentError as e:
             print(e)
 
-        dt = time.time() - start
-        remaining = (time.time() - start_time) / (i - start_step) * (params['batches'] - i)
-        print(f'batch: {i}, time for batch: {format_time(dt)}, remaining time: {format_time(remaining)}')
-
         if i % params['steps_per_scalar_summary'] == 0:
             start = time.time()
             summary_writer.add_summary(sess.run(scalar_summaries), i)
