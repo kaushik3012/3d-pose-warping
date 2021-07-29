@@ -5,7 +5,7 @@ from model import generator, discriminator
 from parallel_threading import parallel_map_as_tf_dataset
 from losses import get_feature_loss, init_perception_model, get_pose_loss, init_pose_model
 import tensorflow as tf
-from utils import initialize_uninitialized, format_time, ssim, make_pretrained_weight_loader
+from utils import initialize_uninitialized,  ssim, make_pretrained_weight_loader
 from io import BytesIO
 import matplotlib.pyplot as plt
 import time
