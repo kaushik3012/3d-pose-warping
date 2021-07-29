@@ -81,8 +81,8 @@ if __name__ == '__main__':
 
     init_pose_model(sess, 'pose3d_minimal/checkpoint/model.ckpt-160684')
 
-    if not os.path.exists('tensorboard_events'):
-        os.makedirs('tensorboard_events')
+    if not os.path.exists(params['tb_dir']):
+        os.makedirs(params['tb_dir'])
 
     start = time.time()
     checkpoint = tf.train.latest_checkpoint(params['check_dir'])
@@ -95,8 +95,8 @@ if __name__ == '__main__':
         initialize_uninitialized(sess)
         print(f'Loaded checkpoint from step {start_step}:', time.time() - start)
 
-        print('Performing validation')
-        val_start = time.time()
+        print('Performing test')
+        test_start = time.time()
         v_inp = []
         v_tar = []
         v_gen = []
@@ -153,7 +153,7 @@ if __name__ == '__main__':
         summary = tf.Summary(value=[tf.Summary.Value(tag=f'{prefix}_img', image=res)])
         summary_writer.add_summary(summary, 0)
         summary_writer.flush()
-        print('Performed validation:', time.time() - val_start)
+        print('Performed Test:', time.time() - test_start)
 
         res2 = np.concatenate([v_inp, v_tar, v_gen], axis=1)
         plt.imsave('output/res.png', res2, format='png')
