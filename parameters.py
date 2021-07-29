@@ -45,7 +45,7 @@ def init():
 
     # validation configuration
     params['with_valid'] = True  # if True, training is performed on train and valid and tb outputs are on test split
-    params['valid_count'] = 3  # number of samples validation is based on
+    params['valid_count'] = 20  # number of samples validation is based on
 
     params['name'] = 'fash-3d_w-3d_p'  # name will be appended to both the checkpoint directory and the tebsorboard directory
 
