@@ -377,21 +377,73 @@ class Dataset:
             yield self.uncached_sample(self.test)
 
     def uncached_sample(self, selectable, train=False):
-        person = random.choice(list(selectable.keys()))
-        if len(selectable[person]) <= 2:
-            samples = selectable[person]
-        else:
-            samples = random.sample(selectable[person], 1)
-        # if len(samples) == 1:
-        #     samples.append(samples[0])
-        fr = self.load(samples[0])
+        if params['profile'] == 1:
+            person = random.choice(list(selectable.keys()))
+            if len(selectable[person]) <= 2:
+                samples = selectable[person]
+            else:
+                samples = random.sample(selectable[person], 1)
+            to = self.load(samples[0])
+            fr = self.load(['WOMEN','Dresses','id_00006993','03','1_front'],1)
         
-        person = random.choice(list(selectable.keys()))
-        if len(selectable[person]) <= 2:
-            samples = selectable[person]
-        else:
-            samples = random.sample(selectable[person], 1)
-        to = self.load(samples[0])
+        elif params['profile'] == 2:
+            person = random.choice(list(selectable.keys()))
+            if len(selectable[person]) <= 2:
+                samples = selectable[person]
+            else:
+                samples = random.sample(selectable[person], 1)
+            to = self.load(samples[0])
+            fr = self.load(['MEN','Jackets_Vests','id_00000084','04','1_front'],1)
+        
+        elif params['profile'] == 3:
+            person = random.choice(list(selectable.keys()))
+            if len(selectable[person]) <= 2:
+                samples = selectable[person]
+            else:
+                samples = random.sample(selectable[person], 1)
+            to = self.load(samples[0])
+            fr = self.load(['WOMEN','Sweatshirts_Hoodies','id_00003708','01','1_front'],1)
+
+        elif params['profile'] == 4:
+            person = random.choice(list(selectable.keys()))
+            if len(selectable[person]) <= 2:
+                samples = selectable[person]
+            else:
+                samples = random.sample(selectable[person], 1)
+            to = self.load(samples[0])
+            fr = self.load(['WOMEN','Sweatshirts_Hoodies','id_00003963','05','1_front'],1)
+
+        elif params['profile'] == 0: 
+            person = random.choice(list(selectable.keys()))
+            if len(selectable[person]) <= 2:
+                samples = selectable[person]
+            else:
+                samples = random.sample(selectable[person], 2)
+            if len(samples) == 1:
+                samples.append(samples[0])
+            fr = self.load(samples[0])
+            to = self.load(samples[1])
+
+        elif params['profile']==-1:
+            person = random.choice(list(selectable.keys()))
+            if len(selectable[person]) <= 2:
+                samples = selectable[person]
+            else:
+                samples = random.sample(selectable[person], 1)
+            # if len(samples) == 1:
+            #     samples.append(samples[0])
+            fr = self.load(samples[0])
+            
+            person = random.choice(list(selectable.keys()))
+            if len(selectable[person]) <= 2:
+                samples = selectable[person]
+            else:
+                samples = random.sample(selectable[person], 1)
+            to = self.load(samples[0])
+
+        else: 
+            raise ValueError()
+
         return self.get_sample_from_loaded(fr, to, train)
 
     def get_sample_from_loaded(self, fr, to, train):
@@ -417,9 +469,15 @@ class Dataset:
         else:
             return fr_img, to_img, fr_masks, transform_params, fr_pose, to_pose
 
-    def load(self, keys):
-        img = '/'.join([params['data_dir'], self.name, 'images'] + keys[0:4]) +'_'+ keys[4] + '.jpg'
-        img = np.array(imread(img), dtype=np.float32)
+    def load(self, keys, flag=0):
+        if flag == 0 :
+            img = '/'.join([params['data_dir'], self.name, 'images'] + keys[0:4]) +'_'+ keys[4] + '.jpg'
+        elif flag == 1:
+            img = 'inputs/img'+str(params['profile'])+'.jpg'
+                
+        img = imread(img)
+        img = cv2.resize(img, (256,256))
+        img = np.array(img, dtype=np.float32)
         img = img / 127.5 - 1
         
         pose = get_from_deep_dict(self.poses, keys).copy().astype(np.float32)
