@@ -4,7 +4,7 @@
 Implementing GAN based reposing of an image of a human into any desired novel pose based on the algorithm provided in the paper [here](https://arxiv.org/pdf/2006.04898.pdf). To generate the desired pose, dense feature voxels are implicitly learned from the given 2D poses and then these voxels are warped according to the desired poses. After obtaining the desired 3D feature volume, these voxels are converted back to 2D space using a convolutional decoder.
 
 
-![Logo](https://github.com/kaushik3012/3d-pose-warping/misc/logo.svg.png)
+![Logo](https://github.com/kaushik3012/3d-pose-warping/blob/master/misc/eclublogo.png)
 
     
 ## Screenshots
