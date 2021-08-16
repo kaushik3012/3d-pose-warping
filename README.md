@@ -26,7 +26,7 @@ Link to Google Colaboratory notebook for demo of this project: [Click here](http
   
 ## Documentation
 Link to Documentation:
-[Click here](https://docs.google.com/viewer?url=https://github.com/kaushik3012/3d-pose-warping/misc/documentation.pdf)
+[Click here](https://docs.google.com/viewer?url=https://github.com/kaushik3012/3d-pose-warping/blob/master/misc/documentation.pdf)
 
   
 ## Team
