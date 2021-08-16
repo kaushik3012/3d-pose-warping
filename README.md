@@ -6,7 +6,7 @@ Implementing GAN based reposing of an image of a human into any desired novel po
     
 ## Screenshots
 
-![Sample Screenshot](https://github.com/kaushik3012/3d-pose-warping/blob/master/misc/screenshot1.png)
+![Sample Screenshot](misc/screenshot1.png)
 
   
 ## Demo
