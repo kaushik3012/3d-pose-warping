@@ -46,5 +46,3 @@ Link to Documentation:
 ## Acknowledgements
 - [Prakhar Maheshwari](https://www.github.com/harpArk614) (Our Mentor)
 - [Markus Knoche and Istv\'an S\'ar\'andi and Bastian Leibe](https://arxiv.org/pdf/2006.04898.pdf) (Original research work)
-
-![Logo](https://github.com/kaushik3012/3d-pose-warping/blob/master/misc/eclublogo.png)
